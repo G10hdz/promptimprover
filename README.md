@@ -1,62 +1,43 @@
-# 🚀 Proyecto: Prompt generator with 3 outputs for multi AI providers  
-### Inteligencia Artificial 
+# promptimprover
 
----
+Español | [English](README.en.md)
 
-## 🧠 Descripción del Proyecto
-Este proyecto fue desarrollado durante el **[Hackathon Kavak x OpenAI]**, con el objetivo de integrar las capacidades act para optimizar procesos, mejorar la experiencia del usuario y aplicar **IA generativa** en el análisis de datos en variedad de agentes provedores de IA.
+Optimizador de prompts multiagente en un solo notebook de Colab. Recibe un prompt, detecta problemas comunes, lo reescribe y genera tres variantes ajustadas a las guías de OpenAI, Gemini y Claude.
 
-## Ingeniería de Prompts:
+Prototipo del hackathon Kavak x OpenAI: un experimento de una celda, no un servicio.
 
-• Genera prompts mejorados
+## Qué hace
 
-## El sistema permite:
-- Procesamiento de instrucciones para optimización de la busqueda en un prompt con cada interación.  
-- Generación de interacciones de busqueda donde cada interacción mejora la métrica anterior.  
-- El sistema que se muestra ayuda a indentificar y corregir problemas comunes, lo que resulta en indicaciones más fiables y efectivas .  
-  
----
+- Revisa el prompt con tres agentes de análisis: contradicciones lógicas, formato de salida esperado y consistencia de los ejemplos few-shot.
+- Reescribe el prompt y los ejemplos inconsistentes conservando la intención original.
+- Genera una variante optimizada para OpenAI, otra para Gemini y otra para Claude.
+- Evalúa cada variante con un agente evaluador e imprime una tabla de scores por intento.
 
-## 💡 Problema que Resuelve
-Se muestran las mejores prácticas para usar conjuntamente agentes SDK para crear una versión de sistemas de optimización del prompt para OpenAI, Gemini y Anthropic.
-El proceso de optimización utiliza un enfoque multiagente con agentes de IA especializados que colaboran para analizar y reescribir las indicaciones.
+## Cómo funciona
 
----
+Todo vive en `prompt_improver_multiAI.ipynb` (una celda, ~560 líneas):
 
-## 🧩 Solución Propuesta
-Descripción general del sistema
-El sistema de optimización de solicitudes utiliza un enfoque colaborativo multiagente para analizar y mejorar las solicitudes. Cada agente se especializa en detectar o reescribir un tipo específico de problema:
+1. `optimize_prompt_parallel_with_platforms` corre los tres checkers en paralelo con `Runner.run` del OpenAI Agents SDK.
+2. `dev_rewriter` corrige el prompt y `fewshot_rewriter` alinea los ejemplos.
+3. `create_multi_optimized_outputs` lanza `openai_optimizer`, `gemini_optimizer` y `claude_optimizer`.
+4. `prompt_evaluator_agent` y `_evaluate_platforms` puntúan cada variante.
+5. `run_all_tests` repite el ciclo sobre 6 prompts de prueba (3 intentos cada uno), elige el mejor intento por test y guarda el resumen en un JSON.
 
-**Dev-Contradiction-Checker:** Analiza la solicitud en busca de contradicciones lógicas o instrucciones imposibles, como "usar solo números positivos" e "incluir ejemplos negativos" en la misma solicitud.
+Todos los agentes corren sobre OpenAI (`gpt-5` y `gpt-5-mini`): las variantes de Gemini y Claude las escribe el mismo modelo siguiendo las prácticas de cada proveedor, no las APIs de Google ni Anthropic.
 
-**Format-Checker:** Identifica cuándo una solicitud espera una salida estructurada (como JSON, CSV o Markdown) pero no especifica claramente los requisitos de formato. Este agente garantiza que todos los campos, tipos de datos y reglas de formato necesarios estén definidos explícitamente.
+## Cómo correrlo
 
-**Few-Shot-Consistency-Checker:** Examina conversaciones de ejemplo para garantizar que las respuestas del asistente cumplan con las reglas especificadas en la solicitud. Esto detecta discrepancias entre lo que requiere la solicitud y lo que demuestran los ejemplos.
+1. Abre `prompt_improver_multiAI.ipynb` en Colab (el badge está en la primera celda) o en VS Code.
+2. `pip install openai-agents pydantic nest_asyncio` y exporta `OPENAI_API_KEY`.
+3. Ejecuta la celda; el entrypoint corre los 6 tests y deja un `promptsmith_unified_results_*.json`.
 
-**Dev-Rewriter:** Tras identificar los problemas, este agente reescribe la solicitud para resolver contradicciones y aclarar las especificaciones de formato, conservando la intención original.
+Si el SDK no está instalado, el script cae en shims que devuelven salidas de ejemplo: sirven para probar la orquestación en seco, no para optimizar de verdad. También intenta importar `main_shared_runtime` como runtime alterno; es opcional y no viene en el repo.
 
-**Reescritura de pocas instancias:** Actualiza las respuestas de ejemplo inconsistentes para que se ajusten a las reglas de la solicitud, garantizando así que todos los ejemplos cumplan correctamente con la nueva solicitud del desarrollador.
+## Estructura
 
-Al trabajar juntos, estos agentes pueden identificar y corregir sistemáticamente los problemas en las solicitudes..
+- `prompt_improver_multiAI.ipynb`: el proyecto completo (agentes, evaluador y suite de tests).
+- `docs/diagrams/architecture.html`: diagrama del pipeline de agentes.
 
----
+## Licencia
 
-## 🛠️ Stack Tecnológico
-| Categoría | Tecnologías |
-|------------|--------------|
-| **Frontend** | React, TailwindCSS, Next.js |
-| **Backend** | FastAPI, Node.js |
-| **IA / ML** | OpenAI API, LangChain, Scikit-learn |
-| **Base de Datos** | PostgreSQL |
-| **Infraestructura** | Docker, Railway, GitHub Actions |
-| **Diseño y Branding** | Figma, Illustrator, Canva |
-
----
-
-## ⚙️ Instalación y Ejecución
-
-### 1️⃣ Clonar el repositorio
-```bash
-git clone https://github.com/tuusuario/kavak-openai-hackathon.git
-cd kavak-openai-hackathon
-```
+MIT (ver `LICENSE`).
